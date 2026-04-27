@@ -681,6 +681,70 @@ body {
 .thinking-dot:nth-child(2){animation-delay:0.2s}.thinking-dot:nth-child(3){animation-delay:0.4s}
 @keyframes thinkBounce{0%,80%,100%{transform:scale(0.5);opacity:0.3}40%{transform:scale(1);opacity:1}}
 
+/* ═══ CHESS PIECE ANIMATION ═══ */
+.chess-cell .piece-inner {
+  transition: none;
+}
+.piece-moving {
+  position: fixed;
+  z-index: 999;
+  pointer-events: none;
+  font-size: clamp(22px, 7vw, 56px);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  transition: none;
+  will-change: transform, left, top, opacity;
+}
+.piece-capture-burst {
+  position: fixed;
+  z-index: 998;
+  pointer-events: none;
+  border-radius: 50%;
+  width: 0; height: 0;
+  transform: translate(-50%, -50%);
+  animation: captureBurst 0.45s ease-out forwards;
+}
+@keyframes captureBurst {
+  0%   { width: 0; height: 0; opacity: 0.9; background: radial-gradient(circle, rgba(255,82,82,0.9), transparent 70%); }
+  60%  { width: 80px; height: 80px; opacity: 0.6; }
+  100% { width: 110px; height: 110px; opacity: 0; }
+}
+.chess-cell.flash-from {
+  animation: flashFrom 0.5s ease-out forwards;
+}
+@keyframes flashFrom {
+  0%   { background: rgba(91,75,255,0.55) !important; }
+  100% { background: inherit; }
+}
+.chess-cell.flash-to {
+  animation: flashTo 0.5s ease-out forwards;
+}
+@keyframes flashTo {
+  0%   { background: rgba(0,201,167,0.65) !important; }
+  60%  { background: rgba(0,201,167,0.25) !important; }
+  100% { background: inherit; }
+}
+.chess-cell.check-flash {
+  animation: checkFlash 0.6s ease-in-out 2 forwards;
+}
+@keyframes checkFlash {
+  0%,100% { background: rgba(255,82,82,0.38) !important; }
+  50%     { background: rgba(255,82,82,0.75) !important; }
+}
+.trail-dot {
+  position: fixed;
+  pointer-events: none;
+  z-index: 997;
+  border-radius: 50%;
+  width: 7px; height: 7px;
+  transform: translate(-50%, -50%);
+  animation: trailFade 0.38s ease-out forwards;
+}
+@keyframes trailFade {
+  0%   { opacity: 0.75; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(0.2); }
+}
+
 /* ═══════════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════════ */
@@ -1806,7 +1870,171 @@ function buildChess() {
   function evaluate(b){let score=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=b[r][c];if(!p)continue;const t=type(p),cl=col(p),v=PIECE_VALUES[t]||0;const idx=cl==='w'?(r*8+c):(63-r*8-c);const pst=(PST[t]||[])[idx]||0;score+=cl==='w'?(v+pst):-(v+pst);}return score;}
   function getBotMoveShallow(b,clr,ep,cr){const moves=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(col(b[r][c])===clr)[...getLegal(b,r,c,ep),...getCastle(b,r,c,cr)].forEach(([tr,tc,flag])=>moves.push([r,c,tr,tc,flag]));if(moves.length===0)return null;let best=null,bestScore=clr==='w'?-Infinity:Infinity;for(const[fr,fc,tr,tc,flag]of moves){const nb=b.map(row=>[...row]);if(flag==='ck'){nb[tr][5]=clr+'R';nb[tr][7]=null;}if(flag==='cq'){nb[tr][3]=clr+'R';nb[tr][0]=null;}nb[tr][tc]=nb[fr][fc];nb[fr][fc]=null;if(type(nb[tr][tc])==='P'&&(tr===0||tr===7))nb[tr][tc]=clr+'Q';const score=evaluate(nb);if(clr==='w'&&score>bestScore){bestScore=score;best=[fr,fc,tr,tc,flag];}if(clr==='b'&&score<bestScore){bestScore=score;best=[fr,fc,tr,tc,flag];}}return best;}
   function getBotMove(b,clr,ep,cr){const moves=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(col(b[r][c])===clr)[...getLegal(b,r,c,ep),...getCastle(b,r,c,cr)].forEach(([tr,tc,flag])=>moves.push([r,c,tr,tc,flag]));if(moves.length===0)return null;if(chessDifficulty==='easy'){const caps=moves.filter(([fr,fc,tr,tc])=>b[tr][tc]);if(caps.length>0&&Math.random()<0.3)return caps[Math.floor(Math.random()*caps.length)];return moves[Math.floor(Math.random()*moves.length)];}if(chessDifficulty==='medium'){moves.sort(()=>Math.random()-0.5);let best=null,bestScore=clr==='w'?-Infinity:Infinity;for(const[fr,fc,tr,tc,flag]of moves){const nb=b.map(row=>[...row]);if(nb[fr][fc]&&type(nb[fr][fc])==='P'&&ep&&ep.r===tr&&ep.c===tc)nb[col(nb[fr][fc])==='w'?tr+1:tr-1][tc]=null;if(flag==='ck'){nb[tr][5]=clr+'R';nb[tr][7]=null;}if(flag==='cq'){nb[tr][3]=clr+'R';nb[tr][0]=null;}nb[tr][tc]=nb[fr][fc];nb[fr][fc]=null;if(type(nb[tr][tc])==='P'&&(tr===0||tr===7))nb[tr][tc]=clr+'Q';const score=evaluate(nb)+(Math.random()-0.5)*80;if(clr==='w'&&score>bestScore){bestScore=score;best=[fr,fc,tr,tc,flag];}if(clr==='b'&&score<bestScore){bestScore=score;best=[fr,fc,tr,tc,flag];}}return best;}moves.sort(()=>Math.random()-0.5);moves.sort((a,mv2)=>(b[mv2[2]][mv2[3]]?-1:0)-(b[a[2]][a[3]]?-1:0));let best=null,bestScore=clr==='w'?-Infinity:Infinity;for(const[fr,fc,tr,tc,flag]of moves){const nb=b.map(row=>[...row]);let nep=null,ncr={...cr};if(nb[fr][fc]&&type(nb[fr][fc])==='P'&&ep&&ep.r===tr&&ep.c===tc)nb[col(nb[fr][fc])==='w'?tr+1:tr-1][tc]=null;if(type(nb[fr][fc])==='P'&&Math.abs(tr-fr)===2)nep={r:(fr+tr)/2,c:tc};if(flag==='ck'){nb[tr][5]=clr+'R';nb[tr][7]=null;}if(flag==='cq'){nb[tr][3]=clr+'R';nb[tr][0]=null;}if(type(nb[fr][fc])==='K'){if(clr==='w'){ncr.wK=ncr.wRq=ncr.wRk=false;}else{ncr.bK=ncr.bRq=ncr.bRk=false;}}if(type(nb[fr][fc])==='R'){if(fr===7&&fc===0)ncr.wRq=false;if(fr===7&&fc===7)ncr.wRk=false;if(fr===0&&fc===0)ncr.bRq=false;if(fr===0&&fc===7)ncr.bRk=false;}nb[tr][tc]=nb[fr][fc];nb[fr][fc]=null;if(type(nb[tr][tc])==='P'&&(tr===0||tr===7))nb[tr][tc]=clr+'Q';const opp=clr==='w'?'b':'w';const oppMv=getBotMoveShallow(nb,opp,nep,ncr);let score;if(oppMv){const nb2=nb.map(row=>[...row]);nb2[oppMv[2]][oppMv[3]]=nb2[oppMv[0]][oppMv[1]];nb2[oppMv[0]][oppMv[1]]=null;score=evaluate(nb2);}else score=evaluate(nb);if(clr==='w'&&score>bestScore){bestScore=score;best=[fr,fc,tr,tc,flag];}if(clr==='b'&&score<bestScore){bestScore=score;best=[fr,fc,tr,tc,flag];}}return best;}
-  function doMove(fr,fc,tr,tc,flag){const movingPiece=board[fr][fc],capturedPiece=board[tr][tc];if(capturedPiece){captured[turn].push(type(capturedPiece));SFX.chessCapture();SFX.vibrate(20);}else{SFX.chessPlace();SFX.vibrate(10);}if(type(movingPiece)==='P'&&enPassant&&enPassant.r===tr&&enPassant.c===tc){captured[turn].push('P');board[turn==='w'?tr+1:tr-1][tc]=null;}enPassant=null;if(type(movingPiece)==='P'&&Math.abs(tr-fr)===2)enPassant={r:(fr+tr)/2,c:tc};if(flag==='ck'){board[tr][5]=turn+'R';board[tr][7]=null;}if(flag==='cq'){board[tr][3]=turn+'R';board[tr][0]=null;}if(type(movingPiece)==='K'){if(turn==='w'){castlingRights.wK=castlingRights.wRq=castlingRights.wRk=false;}else{castlingRights.bK=castlingRights.bRq=castlingRights.bRk=false;}}if(type(movingPiece)==='R'){if(fr===7&&fc===0)castlingRights.wRq=false;if(fr===7&&fc===7)castlingRights.wRk=false;if(fr===0&&fc===0)castlingRights.bRq=false;if(fr===0&&fc===7)castlingRights.bRk=false;}board[tr][tc]=movingPiece;board[fr][fc]=null;lastMove=[fr,fc,tr,tc];if(type(movingPiece)==='P'&&(tr===0||tr===7))board[tr][tc]=turn+'Q';const opp=turn==='w'?'b':'w';turn=opp;if(isInCheck(board,opp)){SFX.chessCheck();SFX.vibrate([15,10,15]);}if(!hasLegal(board,opp,enPassant,castlingRights)){gameOver=true;const inChk=isInCheck(board,opp);render();if(inChk){const winClr=opp==='b'?'w':'b';SFX.chessCheckmate();SFX.vibrate([30,20,30,20,30]);S.played++;if(winClr==='w'&&chessMode==='bot'){S.chess.w++;recordResult('win');saveStats();setTimeout(()=>showModal('♟️','CHECKMATE!',`You defeated the ${chessDifficulty} bot!`,'NEW GAME',chessReset,true),500);}else if(winClr==='b'&&chessMode==='bot'){S.chess.l++;recordResult('loss');saveStats();setTimeout(()=>showModal('🤖','BOT WINS!',`The ${chessDifficulty} bot checkmated you.`,'REMATCH',chessReset),500);}else{S.played++;saveStats();setTimeout(()=>showModal('♟️','CHECKMATE!',`${winClr==='w'?'White':'Black'} wins!`,'NEW GAME',chessReset,winClr==='w'),500);}}else{S.played++;saveStats();setTimeout(()=>showModal('🤝','STALEMATE!','No legal moves — draw!','NEW GAME',chessReset),500);}}else{render();}if(chessMode==='bot'&&turn==='b'&&!gameOver){showThinking(true);const t={easy:200,medium:450,hard:700+Math.random()*400}[chessDifficulty]||450;setTimeout(()=>{const mv=getBotMove(board,'b',enPassant,castlingRights);if(mv&&!gameOver){history.push({board:board.map(r=>[...r]),turn:'b',captured:{w:[...captured.w],b:[...captured.b]},lastMove,enPassant,castlingRights:{...castlingRights}});doMove(mv[0],mv[1],mv[2],mv[3],mv[4]);}showThinking(false);},t);}}
+  function animatePieceMove(pieceSymbol, pieceColor, fromCell, toCell, isCapture, onComplete) {
+    const fromRect = fromCell.getBoundingClientRect();
+    const toRect = toCell.getBoundingClientRect();
+    const cellSize = fromRect.width;
+
+    // Flash source cell
+    fromCell.classList.add('flash-from');
+    setTimeout(() => fromCell.classList.remove('flash-from'), 500);
+
+    // Capture burst effect
+    if (isCapture) {
+      const burst = document.createElement('div');
+      burst.className = 'piece-capture-burst';
+      burst.style.left = (toRect.left + cellSize/2) + 'px';
+      burst.style.top  = (toRect.top  + cellSize/2) + 'px';
+      document.body.appendChild(burst);
+      setTimeout(() => burst.remove(), 460);
+    }
+
+    // Create flying piece element
+    const flyer = document.createElement('div');
+    flyer.className = 'piece-moving';
+    flyer.textContent = pieceSymbol;
+    flyer.style.width  = cellSize + 'px';
+    flyer.style.height = cellSize + 'px';
+    flyer.style.left   = fromRect.left + 'px';
+    flyer.style.top    = fromRect.top  + 'px';
+    flyer.style.fontSize = getComputedStyle(fromCell).fontSize;
+    flyer.style.filter = pieceColor === 'w'
+      ? 'drop-shadow(2px 3px 3px rgba(0,0,0,0.35))'
+      : 'drop-shadow(2px 3px 3px rgba(0,0,0,0.6))';
+    document.body.appendChild(flyer);
+
+    const dx = toRect.left - fromRect.left;
+    const dy = toRect.top  - fromRect.top;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const duration = Math.min(420, Math.max(180, dist * 0.85));
+    const steps = Math.floor(duration / 38);
+    const arcHeight = Math.min(dist * 0.22, cellSize * 1.1);
+
+    // Trail dots
+    for (let i = 1; i < steps - 1; i++) {
+      setTimeout(() => {
+        const pct = i / steps;
+        const ex = fromRect.left + dx * pct;
+        const arcY = -arcHeight * 4 * pct * (pct - 1);
+        const ey = fromRect.top  + dy * pct - arcY;
+        const dot = document.createElement('div');
+        dot.className = 'trail-dot';
+        dot.style.left = (ex + cellSize/2) + 'px';
+        dot.style.top  = (ey + cellSize/2) + 'px';
+        dot.style.background = pieceColor === 'w'
+          ? 'rgba(91,75,255,0.6)' : 'rgba(255,143,0,0.6)';
+        document.body.appendChild(dot);
+        setTimeout(() => dot.remove(), 400);
+      }, (i / steps) * duration * 0.7);
+    }
+
+    // Animate the flying piece along arc
+    let start = null;
+    function frame(ts) {
+      if (!start) start = ts;
+      const pct = Math.min((ts - start) / duration, 1);
+      // Ease in-out cubic
+      const ease = pct < 0.5 ? 4*pct*pct*pct : 1 - Math.pow(-2*pct+2,3)/2;
+      const cx = fromRect.left + dx * ease;
+      const arcY = -arcHeight * 4 * ease * (ease - 1);
+      const cy = fromRect.top  + dy * ease - arcY;
+      // Slight rotation and scale during arc
+      const rot = Math.sin(ease * Math.PI) * 8;
+      const sc  = 1 + Math.sin(ease * Math.PI) * 0.18;
+      flyer.style.left      = cx + 'px';
+      flyer.style.top       = cy + 'px';
+      flyer.style.transform = `rotate(${rot}deg) scale(${sc})`;
+      if (pct < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        flyer.remove();
+        // Flash destination cell
+        toCell.classList.add('flash-to');
+        setTimeout(() => toCell.classList.remove('flash-to'), 500);
+        onComplete();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function doMove(fr,fc,tr,tc,flag,skipAnim){
+    const pieceSymbol = U[board[fr][fc]];
+    const pieceColor  = col(board[fr][fc]);
+    const isCapture   = !!board[tr][tc] || (type(board[fr][fc])==='P' && enPassant && enPassant.r===tr && enPassant.c===tc);
+
+    function applyMove() {
+      const movingPiece=board[fr][fc],capturedPiece=board[tr][tc];
+      if(capturedPiece){captured[turn].push(type(capturedPiece));SFX.chessCapture();SFX.vibrate(20);}
+      else{SFX.chessPlace();SFX.vibrate(10);}
+      if(type(movingPiece)==='P'&&enPassant&&enPassant.r===tr&&enPassant.c===tc){captured[turn].push('P');board[turn==='w'?tr+1:tr-1][tc]=null;}
+      enPassant=null;
+      if(type(movingPiece)==='P'&&Math.abs(tr-fr)===2)enPassant={r:(fr+tr)/2,c:tc};
+      if(flag==='ck'){board[tr][5]=turn+'R';board[tr][7]=null;}
+      if(flag==='cq'){board[tr][3]=turn+'R';board[tr][0]=null;}
+      if(type(movingPiece)==='K'){if(turn==='w'){castlingRights.wK=castlingRights.wRq=castlingRights.wRk=false;}else{castlingRights.bK=castlingRights.bRq=castlingRights.bRk=false;}}
+      if(type(movingPiece)==='R'){if(fr===7&&fc===0)castlingRights.wRq=false;if(fr===7&&fc===7)castlingRights.wRk=false;if(fr===0&&fc===0)castlingRights.bRq=false;if(fr===0&&fc===7)castlingRights.bRk=false;}
+      board[tr][tc]=movingPiece;board[fr][fc]=null;lastMove=[fr,fc,tr,tc];
+      if(type(movingPiece)==='P'&&(tr===0||tr===7))board[tr][tc]=turn+'Q';
+      const opp=turn==='w'?'b':'w';turn=opp;
+      const oppInCheck=isInCheck(board,opp);
+      if(oppInCheck){SFX.chessCheck();SFX.vibrate([15,10,15]);}
+      if(!hasLegal(board,opp,enPassant,castlingRights)){
+        gameOver=true;render();
+        // Flash king cell if checkmate
+        if(oppInCheck){
+          const kp=findKing(board,opp);
+          if(kp){
+            const kCell=document.querySelector(`.chess-board .chess-cell:nth-child(${kp[0]*8+kp[1]+1})`);
+            if(kCell){kCell.classList.add('check-flash');setTimeout(()=>kCell.classList.remove('check-flash'),1300);}
+          }
+          const winClr=opp==='b'?'w':'b';
+          SFX.chessCheckmate();SFX.vibrate([30,20,30,20,30]);
+          S.played++;
+          if(winClr==='w'&&chessMode==='bot'){S.chess.w++;recordResult('win');saveStats();setTimeout(()=>showModal('♟️','CHECKMATE!',`You defeated the ${chessDifficulty} bot!`,'NEW GAME',chessReset,true),700);}
+          else if(winClr==='b'&&chessMode==='bot'){S.chess.l++;recordResult('loss');saveStats();setTimeout(()=>showModal('🤖','BOT WINS!',`The ${chessDifficulty} bot checkmated you.`,'REMATCH',chessReset),700);}
+          else{S.played++;saveStats();setTimeout(()=>showModal('♟️','CHECKMATE!',`${winClr==='w'?'White':'Black'} wins!`,'NEW GAME',chessReset,winClr==='w'),700);}
+        }else{S.played++;saveStats();setTimeout(()=>showModal('🤝','STALEMATE!','No legal moves — draw!','NEW GAME',chessReset),500);}
+      } else {
+        render();
+        // Flash king if in check (not checkmate)
+        if(oppInCheck){
+          const kp=findKing(board,opp);
+          if(kp){
+            const kCell=document.querySelector(`.chess-board .chess-cell:nth-child(${kp[0]*8+kp[1]+1})`);
+            if(kCell){kCell.classList.add('check-flash');setTimeout(()=>kCell.classList.remove('check-flash'),1300);}
+          }
+        }
+        if(chessMode==='bot'&&turn==='b'&&!gameOver){
+          showThinking(true);
+          const t2={easy:200,medium:450,hard:700+Math.random()*400}[chessDifficulty]||450;
+          setTimeout(()=>{
+            const mv=getBotMove(board,'b',enPassant,castlingRights);
+            if(mv&&!gameOver){
+              history.push({board:board.map(r=>[...r]),turn:'b',captured:{w:[...captured.w],b:[...captured.b]},lastMove,enPassant,castlingRights:{...castlingRights}});
+              doMove(mv[0],mv[1],mv[2],mv[3],mv[4]);
+            }
+            showThinking(false);
+          },t2);
+        }
+      }
+    }
+
+    if(skipAnim){applyMove();return;}
+
+    // Get cell DOM elements for animation
+    const boardEl = document.querySelector('.chess-board');
+    if(!boardEl){applyMove();return;}
+    const fromCell = boardEl.querySelector(`.chess-cell:nth-child(${fr*8+fc+1})`);
+    const toCell   = boardEl.querySelector(`.chess-cell:nth-child(${tr*8+tc+1})`);
+    if(!fromCell||!toCell){applyMove();return;}
+
+    // Hide the piece on the from-cell during animation
+    const fromInner = fromCell.querySelector('.piece-inner');
+    if(fromInner) fromInner.style.opacity='0';
+
+    animatePieceMove(pieceSymbol, pieceColor, fromCell, toCell, isCapture, applyMove);
+  }
+
   function showThinking(show){const el=document.getElementById('chess-thinking');if(el)el.style.display=show?'flex':'none';}
 
   function render() {
