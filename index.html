@@ -1398,18 +1398,67 @@ function buildSnake() {
   const _orig=window.closeGame;
   window.closeGame=()=>{document.removeEventListener('keydown',kh);_orig();window.closeGame=_orig;};
 
-  function init() { snake=[{x:11,y:11},{x:10,y:11},{x:9,y:11}];dir={x:1,y:0};nextDir={x:1,y:0};score=0;state='idle';speed=140;placeFood();draw(); }
-  function placeFood() { let ok=false; while(!ok){food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};ok=!snake.some(s=>s.x===food.x&&s.y===food.y);} }
-  window.snakeDir = (x,y) => { if(dir.x===-x&&dir.y===-y)return;nextDir={x,y};if(state!=='running')snakeStart(); };
-  window.snakeStart = () => { if(state==='dead')init();state='running';document.getElementById('sn-overlay').style.display='none';if(!window._snakeLoop)step(performance.now()); };
+  let bigFood = null, bigFoodTimer = 0, bigFoodLife = 0;
+  const BIG_FOOD_INTERVAL_MIN = 5000, BIG_FOOD_INTERVAL_MAX = 10000;
+  const BIG_FOOD_DURATION = 7000; // stays on board for 7s
+  let nextBigFoodAt = 0;
 
-  function step(t) { if(state!=='running')return;window._snakeLoop=requestAnimationFrame(step);if(t-lastTime<speed)return;lastTime=t;tick(); }
+  function init() {
+    snake=[{x:11,y:11},{x:10,y:11},{x:9,y:11}];dir={x:1,y:0};nextDir={x:1,y:0};score=0;state='idle';speed=140;
+    bigFood=null;bigFoodTimer=0;bigFoodLife=0;nextBigFoodAt=0;
+    placeFood();draw();
+  }
+  function placeFood() {
+    let ok=false;
+    while(!ok){food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};ok=!snake.some(s=>s.x===food.x&&s.y===food.y);}
+  }
+  function placeBigFood() {
+    let ok=false,attempts=0;
+    while(!ok&&attempts<50){
+      const bx=Math.floor(Math.random()*COLS),by=Math.floor(Math.random()*ROWS);
+      ok=!snake.some(s=>s.x===bx&&s.y===by)&&!(food.x===bx&&food.y===by);
+      if(ok) bigFood={x:bx,y:by};
+      attempts++;
+    }
+    bigFoodLife=performance.now()+BIG_FOOD_DURATION;
+  }
+  window.snakeDir = (x,y) => { if(dir.x===-x&&dir.y===-y)return;nextDir={x,y};if(state!=='running')snakeStart(); };
+  window.snakeStart = () => {
+    if(state==='dead')init();state='running';
+    document.getElementById('sn-overlay').style.display='none';
+    nextBigFoodAt=performance.now()+BIG_FOOD_INTERVAL_MIN+Math.random()*(BIG_FOOD_INTERVAL_MAX-BIG_FOOD_INTERVAL_MIN);
+    if(!window._snakeLoop)step(performance.now());
+  };
+
+  function step(t) {
+    if(state!=='running')return;
+    window._snakeLoop=requestAnimationFrame(step);
+    // Big food spawn/expire logic (time-based, not tick-based)
+    if(!bigFood && t > nextBigFoodAt) { placeBigFood(); }
+    if(bigFood && t > bigFoodLife) { bigFood=null; nextBigFoodAt=t+BIG_FOOD_INTERVAL_MIN+Math.random()*(BIG_FOOD_INTERVAL_MAX-BIG_FOOD_INTERVAL_MIN); }
+    if(t-lastTime<speed)return;
+    lastTime=t;tick();
+  }
   function tick() {
     dir={...nextDir};
     const head = { x:(snake[0].x+dir.x+COLS)%COLS, y:(snake[0].y+dir.y+ROWS)%ROWS };
     if(snake.some(s=>s.x===head.x&&s.y===head.y)){die();return;}
     snake.unshift(head);
-    if(head.x===food.x&&head.y===food.y){
+    // Check big food
+    if(bigFood && head.x===bigFood.x && head.y===bigFood.y){
+      score+=5;
+      for(let i=0;i<4;i++){const tail=snake[snake.length-1];snake.push({...tail});}
+      bigFood=null;
+      nextBigFoodAt=performance.now()+BIG_FOOD_INTERVAL_MIN+Math.random()*(BIG_FOOD_INTERVAL_MAX-BIG_FOOD_INTERVAL_MIN);
+      SFX.snakeLevelUp();SFX.vibrate([20,10,20,10,20]);
+      showToast('🍎 BIG APPLE! +5 pts');
+      document.getElementById('sn-score').textContent=score;
+      document.getElementById('sn-speed').textContent=Math.floor((140-speed)/9)+1;
+      if(score>S.snakeBest){S.snakeBest=score;saveStats();document.getElementById('sn-best').textContent=S.snakeBest;}
+      snake.pop();
+    }
+    // Check regular food
+    else if(head.x===food.x&&head.y===food.y){
       score++;
       const nS=Math.max(55,140-Math.floor(score/3)*9);
       if(nS!==speed){speed=nS;SFX.snakeLevelUp();}else SFX.snakeEat();
@@ -1437,146 +1486,145 @@ function buildSnake() {
   }
   function draw() {
     ctx.clearRect(0,0,W,H);
-    // Board background
     const boardBg=ctx.createLinearGradient(0,0,0,H);
-    boardBg.addColorStop(0,'#070d11');
-    boardBg.addColorStop(1,'#04080c');
+    boardBg.addColorStop(0,'#070d11');boardBg.addColorStop(1,'#04080c');
     ctx.fillStyle=boardBg;ctx.fillRect(0,0,W,H);
-
-    // Grid lines
     ctx.strokeStyle='rgba(86,207,94,0.04)';ctx.lineWidth=0.5;
     for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(x*CELL,0);ctx.lineTo(x*CELL,H);ctx.stroke();}
     for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(0,y*CELL);ctx.lineTo(W,y*CELL);ctx.stroke();}
 
     const t=Date.now()/800;
 
-    // Food with glow
+    // ── Regular food (glowing apple) ──
+    const fpulse=Math.sin(t*2.5)*0.4+0.6;
     ctx.save();
-    ctx.shadowColor='rgba(255,60,60,0.9)';ctx.shadowBlur=10+Math.sin(t*2)*4;
-    ctx.font=`${CELL-2}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('🍎',food.x*CELL+CELL/2,food.y*CELL+CELL/2);
+    ctx.shadowColor=`rgba(255,60,60,${0.7*fpulse})`;ctx.shadowBlur=14+fpulse*8;
+    // Draw apple body
+    const fx=food.x*CELL+CELL/2, fy=food.y*CELL+CELL/2, fr=CELL*0.35;
+    const appGrad=ctx.createRadialGradient(fx-fr*0.25,fy-fr*0.35,fr*0.05,fx,fy,fr);
+    appGrad.addColorStop(0,'#ff6b6b');appGrad.addColorStop(0.55,'#e02020');appGrad.addColorStop(1,'#8b0000');
+    ctx.fillStyle=appGrad;ctx.beginPath();ctx.arc(fx,fy,fr*(0.95+fpulse*0.05),0,Math.PI*2);ctx.fill();
+    // Shine
+    ctx.fillStyle='rgba(255,255,255,0.28)';ctx.beginPath();ctx.ellipse(fx-fr*0.22,fy-fr*0.28,fr*0.3,fr*0.18,-0.4,0,Math.PI*2);ctx.fill();
+    // Stem
+    ctx.strokeStyle='#5a3010';ctx.lineWidth=Math.max(1,CELL*0.07);ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(fx,fy-fr*0.92);ctx.quadraticCurveTo(fx+fr*0.4,fy-fr*1.35,fx+fr*0.25,fy-fr*1.65);ctx.stroke();
+    // Leaf
+    ctx.fillStyle='rgba(60,180,40,0.9)';ctx.beginPath();ctx.ellipse(fx+fr*0.28,fy-fr*1.28,fr*0.28,fr*0.14,0.7,0,Math.PI*2);ctx.fill();
     ctx.restore();
+
+    // ── Big food (massive golden apple with pulsing ring) ──
+    if(bigFood){
+      const bfx=bigFood.x*CELL+CELL/2, bfy=bigFood.y*CELL+CELL/2, bfr=CELL*0.52;
+      const bpulse=Math.sin(t*3.5)*0.5+0.5;
+      ctx.save();
+      // Outer ring pulsing
+      ctx.strokeStyle=`rgba(255,215,0,${0.35+bpulse*0.45})`;
+      ctx.lineWidth=Math.max(1.5,CELL*0.09);
+      ctx.setLineDash([CELL*0.18,CELL*0.12]);
+      ctx.beginPath();ctx.arc(bfx,bfy,(bfr+CELL*0.22)*(1+bpulse*0.08),0,Math.PI*2);ctx.stroke();
+      ctx.setLineDash([]);
+      // Glow
+      ctx.shadowColor=`rgba(255,200,0,${0.6+bpulse*0.4})`;ctx.shadowBlur=22+bpulse*14;
+      // Apple body - golden
+      const bgGrad=ctx.createRadialGradient(bfx-bfr*0.22,bfy-bfr*0.3,bfr*0.04,bfx,bfy,bfr);
+      bgGrad.addColorStop(0,'#ffe14d');bgGrad.addColorStop(0.5,'#ffa500');bgGrad.addColorStop(1,'#b35000');
+      ctx.fillStyle=bgGrad;ctx.beginPath();ctx.arc(bfx,bfy,bfr*(0.94+bpulse*0.06),0,Math.PI*2);ctx.fill();
+      // Shine
+      ctx.shadowBlur=0;
+      ctx.fillStyle='rgba(255,255,255,0.32)';ctx.beginPath();ctx.ellipse(bfx-bfr*0.2,bfy-bfr*0.25,bfr*0.34,bfr*0.2,-0.4,0,Math.PI*2);ctx.fill();
+      // Stem
+      ctx.strokeStyle='#5a3010';ctx.lineWidth=Math.max(1.2,CELL*0.09);ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(bfx,bfy-bfr*0.9);ctx.quadraticCurveTo(bfx+bfr*0.4,bfy-bfr*1.3,bfx+bfr*0.28,bfy-bfr*1.6);ctx.stroke();
+      // Leaf
+      ctx.fillStyle='rgba(60,200,40,0.92)';ctx.beginPath();ctx.ellipse(bfx+bfr*0.3,bfy-bfr*1.22,bfr*0.32,bfr*0.16,0.7,0,Math.PI*2);ctx.fill();
+      // "+5" label
+      ctx.shadowColor='rgba(255,200,0,0.9)';ctx.shadowBlur=8;
+      ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(8,CELL*0.52)}px var(--font-display,sans-serif)`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('+5',bfx,bfy+bfr*1.5);
+      ctx.restore();
+    }
 
     const len=snake.length;
     if(len===0)return;
 
-    // Draw body segments (back to front)
+    // ── Snake body (back to front) ──
     for(let idx=len-1;idx>=1;idx--){
       const seg=snake[idx];
-      const next=snake[idx-1];
-      const prev=snake[idx+1]||seg;
       const tn=idx/(len-1||1);
-
-      // Color gradient: tail=dark, body=mid green
-      const g=Math.round(155-tn*60);
-      const r=Math.round(18+tn*12);
-      const bv=Math.round(28+tn*10);
-      const alp=0.92-tn*0.18;
-
-      const cx=seg.x*CELL+CELL/2;
-      const cy=seg.y*CELL+CELL/2;
-      const radius=Math.max(2,(CELL/2)*(0.82-tn*0.22));
-
-      // Main segment
+      const g=Math.round(170-tn*70),r2=Math.round(16+tn*14),bv=Math.round(24+tn*12);
+      const alp=0.94-tn*0.2;
+      const cx=seg.x*CELL+CELL/2, cy=seg.y*CELL+CELL/2;
+      const radius=Math.max(2,(CELL/2)*(0.84-tn*0.24));
       ctx.save();
-      ctx.shadowColor=`rgba(${r},${g},${bv},0.4)`;
-      ctx.shadowBlur=idx===1?8:3;
-      ctx.fillStyle=`rgba(${r},${g},${bv},${alp})`;
+      ctx.shadowColor=`rgba(${r2},${g},${bv},${0.35-tn*0.2})`;ctx.shadowBlur=idx===1?10:4;
+      ctx.fillStyle=`rgba(${r2},${g},${bv},${alp})`;
       ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();
-
-      // Scale pattern on body
-      if(idx%2===0&&len>4){
-        ctx.fillStyle=`rgba(${Math.max(10,r-8)},${Math.min(255,g+20)},${bv},${0.18+Math.sin(t*2+idx)*0.06})`;
-        ctx.beginPath();ctx.arc(cx-radius*0.2,cy-radius*0.2,radius*0.32,0,Math.PI*2);ctx.fill();
-        ctx.beginPath();ctx.arc(cx+radius*0.2,cy+radius*0.2,radius*0.28,0,Math.PI*2);ctx.fill();
+      // Scales
+      if(idx%2===0&&len>5){
+        ctx.fillStyle=`rgba(${Math.max(10,r2-10)},${Math.min(255,g+25)},${bv},${0.2+Math.sin(t*2+idx)*0.07})`;
+        ctx.beginPath();ctx.arc(cx-radius*0.18,cy-radius*0.18,radius*0.3,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(cx+radius*0.18,cy+radius*0.18,radius*0.26,0,Math.PI*2);ctx.fill();
       }
       // Belly highlight
       const belly=ctx.createRadialGradient(cx-radius*0.15,cy-radius*0.15,0,cx,cy,radius);
-      belly.addColorStop(0,`rgba(255,255,255,0.12)`);
-      belly.addColorStop(0.6,`rgba(255,255,255,0.04)`);
-      belly.addColorStop(1,`rgba(0,0,0,0)`);
-      ctx.fillStyle=belly;
-      ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();
-
+      belly.addColorStop(0,'rgba(255,255,255,0.13)');belly.addColorStop(0.6,'rgba(255,255,255,0.04)');belly.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=belly;ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();
       ctx.restore();
     }
 
-    // Draw HEAD last (on top)
+    // ── Head ──
     const head=snake[0];
-    const hx=head.x*CELL+CELL/2;
-    const hy=head.y*CELL+CELL/2;
-    const hr=Math.max(3,(CELL/2)*0.92);
-
+    const hx=head.x*CELL+CELL/2, hy=head.y*CELL+CELL/2, hr=Math.max(3,(CELL/2)*0.94);
     ctx.save();
-    // Head glow
-    ctx.shadowColor='rgba(32,220,60,0.7)';ctx.shadowBlur=20+Math.sin(t*3)*4;
-
-    // Head base
-    const headGrad=ctx.createRadialGradient(hx-hr*0.2,hy-hr*0.2,0,hx,hy,hr);
-    headGrad.addColorStop(0,'rgba(42,195,68,1)');
-    headGrad.addColorStop(0.6,'rgba(22,155,42,1)');
-    headGrad.addColorStop(1,'rgba(10,90,22,1)');
+    ctx.shadowColor='rgba(32,220,60,0.75)';ctx.shadowBlur=22+Math.sin(t*3)*5;
+    // Head body – elongated slightly in movement direction
+    const scaleX=1+Math.abs(dir.x)*0.12, scaleY=1+Math.abs(dir.y)*0.12;
+    const headGrad=ctx.createRadialGradient(hx-hr*0.2*scaleX,hy-hr*0.2*scaleY,0,hx,hy,hr*Math.max(scaleX,scaleY));
+    headGrad.addColorStop(0,'rgba(52,215,78,1)');headGrad.addColorStop(0.55,'rgba(24,165,48,1)');headGrad.addColorStop(1,'rgba(10,90,22,1)');
     ctx.fillStyle=headGrad;
-    ctx.beginPath();ctx.arc(hx,hy,hr,0,Math.PI*2);ctx.fill();
-
+    ctx.beginPath();ctx.ellipse(hx,hy,hr*scaleX,hr*scaleY,0,0,Math.PI*2);ctx.fill();
     // Head highlight
     ctx.fillStyle='rgba(255,255,255,0.22)';
-    ctx.beginPath();ctx.arc(hx-hr*0.22,hy-hr*0.22,hr*0.46,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(hx-hr*0.22*scaleX,hy-hr*0.22*scaleY,hr*0.44*scaleX,hr*0.28*scaleY,0,0,Math.PI*2);ctx.fill();
     ctx.shadowBlur=0;
-
     // Eyes
-    let e1x,e1y,e2x,e2y,tx,ty;
-    if(dir.x!==0){
-      e1x=hx+dir.x*hr*0.26;e1y=hy-hr*0.34;
-      e2x=hx+dir.x*hr*0.26;e2y=hy+hr*0.34;
-      tx=dir.x;ty=0;
-    }else{
-      e1x=hx-hr*0.34;e1y=hy+dir.y*hr*0.26;
-      e2x=hx+hr*0.34;e2y=hy+dir.y*hr*0.26;
-      tx=0;ty=dir.y;
-    }
-    // Eye whites
+    let e1x,e1y,e2x,e2y,tx=dir.x,ty=dir.y;
+    if(dir.x!==0){e1x=hx+dir.x*hr*0.28;e1y=hy-hr*0.36;e2x=hx+dir.x*hr*0.28;e2y=hy+hr*0.36;}
+    else{e1x=hx-hr*0.36;e1y=hy+dir.y*hr*0.28;e2x=hx+hr*0.36;e2y=hy+dir.y*hr*0.28;}
     [[e1x,e1y],[e2x,e2y]].forEach(([ex,ey])=>{
-      ctx.fillStyle='rgba(240,255,240,0.95)';
-      ctx.beginPath();ctx.arc(ex,ey,hr*0.22,0,Math.PI*2);ctx.fill();
-      // Pupil
-      ctx.fillStyle='#0a0a0a';
-      ctx.beginPath();ctx.arc(ex+tx*hr*0.07,ey+ty*hr*0.07,hr*0.12,0,Math.PI*2);ctx.fill();
-      // Eye shine
-      ctx.fillStyle='rgba(255,255,255,0.9)';
-      ctx.beginPath();ctx.arc(ex+tx*hr*0.04-hr*0.05,ey+ty*hr*0.04-hr*0.05,hr*0.045,0,Math.PI*2);ctx.fill();
+      // Sclera
+      ctx.fillStyle='rgba(240,255,240,0.96)';ctx.beginPath();ctx.arc(ex,ey,hr*0.24,0,Math.PI*2);ctx.fill();
+      // Pupil (vertical slit like a real snake)
+      ctx.fillStyle='#050505';
+      ctx.save();ctx.translate(ex+tx*hr*0.07,ey+ty*hr*0.07);
+      ctx.scale(0.45,1);ctx.beginPath();ctx.arc(0,0,hr*0.18,0,Math.PI*2);ctx.restore();ctx.fill();
+      // Iris ring
+      ctx.strokeStyle='rgba(60,120,60,0.6)';ctx.lineWidth=hr*0.05;
+      ctx.beginPath();ctx.arc(ex,ey,hr*0.22,0,Math.PI*2);ctx.stroke();
+      // Shine
+      ctx.fillStyle='rgba(255,255,255,0.88)';
+      ctx.beginPath();ctx.arc(ex+tx*hr*0.04-hr*0.06,ey+ty*hr*0.04-hr*0.06,hr*0.048,0,Math.PI*2);ctx.fill();
     });
-
-    // Tongue (animated flick)
+    // Tongue (forked, animated flick)
     const flick=(Math.sin(t*9)+1)/2;
-    const tongueStart={x:hx+tx*hr*0.9,y:hy+ty*hr*0.9};
-    const tongueLen=hr*(0.55+0.35*flick);
-    const split=hr*(0.22+0.08*flick);
-    ctx.strokeStyle=`rgba(255,80,80,${0.85+flick*0.15})`;
+    const tBase={x:hx+tx*hr*0.92,y:hy+ty*hr*0.92};
+    const tLen=hr*(0.58+0.38*flick);
+    const split=hr*(0.24+0.1*flick);
+    ctx.shadowColor=`rgba(255,80,80,${0.6+flick*0.4})`;ctx.shadowBlur=6;
+    ctx.strokeStyle=`rgba(255,70,70,${0.85+flick*0.15})`;
     ctx.lineWidth=Math.max(1.1,CELL*0.055);ctx.lineCap='round';
-    // Base of tongue
-    ctx.beginPath();
-    ctx.moveTo(tongueStart.x,tongueStart.y);
-    const tmx=tongueStart.x+tx*tongueLen*0.5;
-    const tmy=tongueStart.y+ty*tongueLen*0.5;
+    ctx.beginPath();ctx.moveTo(tBase.x,tBase.y);
+    const tmx=tBase.x+tx*tLen*0.5,tmy=tBase.y+ty*tLen*0.5;
     ctx.lineTo(tmx,tmy);ctx.stroke();
-    // Fork
-    ctx.beginPath();
-    ctx.moveTo(tmx,tmy);
-    ctx.lineTo(tmx+tx*tongueLen*0.5-ty*split,tmy+ty*tongueLen*0.5-tx*split);ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tmx,tmy);
-    ctx.lineTo(tmx+tx*tongueLen*0.5+ty*split,tmy+ty*tongueLen*0.5+tx*split);ctx.stroke();
-
-    // Head nostrils
-    const n1x=hx+tx*hr*0.55-ty*hr*0.18;
-    const n1y=hy+ty*hr*0.55-tx*hr*0.18;
-    const n2x=hx+tx*hr*0.55+ty*hr*0.18;
-    const n2y=hy+ty*hr*0.55+tx*hr*0.18;
-    ctx.fillStyle='rgba(0,0,0,0.5)';
-    ctx.beginPath();ctx.arc(n1x,n1y,hr*0.07,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(n2x,n2y,hr*0.07,0,Math.PI*2);ctx.fill();
-
+    ctx.beginPath();ctx.moveTo(tmx,tmy);ctx.lineTo(tmx+tx*tLen*0.5-ty*split,tmy+ty*tLen*0.5-tx*split);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(tmx,tmy);ctx.lineTo(tmx+tx*tLen*0.5+ty*split,tmy+ty*tLen*0.5+tx*split);ctx.stroke();
+    // Nostrils
+    const n1x=hx+tx*hr*0.57-ty*hr*0.2,n1y=hy+ty*hr*0.57-tx*hr*0.2;
+    const n2x=hx+tx*hr*0.57+ty*hr*0.2,n2y=hy+ty*hr*0.57+tx*hr*0.2;
+    ctx.shadowBlur=0;ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.beginPath();ctx.arc(n1x,n1y,hr*0.075,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(n2x,n2y,hr*0.075,0,Math.PI*2);ctx.fill();
     ctx.restore();
     ctx.shadowBlur=0;
   }
