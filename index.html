@@ -1556,20 +1556,22 @@ function buildSnake() {
       const alp=0.94-tn*0.2;
       const cx=seg.x*CELL+CELL/2, cy=seg.y*CELL+CELL/2;
       const radius=Math.max(2,(CELL/2)*(0.84-tn*0.24));
+      const sq=radius*2, sqx=cx-radius, sqy=cy-radius, sqr=Math.max(2,radius*0.32);
       ctx.save();
       ctx.shadowColor=`rgba(${r2},${g},${bv},${0.35-tn*0.2})`;ctx.shadowBlur=idx===1?10:4;
       ctx.fillStyle=`rgba(${r2},${g},${bv},${alp})`;
-      ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.roundRect(sqx,sqy,sq,sq,sqr);ctx.fill();
       // Scales
       if(idx%2===0&&len>5){
-        ctx.fillStyle=`rgba(${Math.max(10,r2-10)},${Math.min(255,g+25)},${bv},${0.2+Math.sin(t*2+idx)*0.07})`;
-        ctx.beginPath();ctx.arc(cx-radius*0.18,cy-radius*0.18,radius*0.3,0,Math.PI*2);ctx.fill();
-        ctx.beginPath();ctx.arc(cx+radius*0.18,cy+radius*0.18,radius*0.26,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=`rgba(${Math.max(10,r2-10)},${Math.min(255,g+25)},${bv},${0.22+Math.sin(t*2+idx)*0.07})`;
+        const ss=sq*0.22;
+        ctx.beginPath();ctx.roundRect(sqx+sq*0.12,sqy+sq*0.12,ss,ss,ss*0.35);ctx.fill();
+        ctx.beginPath();ctx.roundRect(sqx+sq*0.58,sqy+sq*0.58,ss*0.9,ss*0.9,ss*0.3);ctx.fill();
       }
       // Belly highlight
-      const belly=ctx.createRadialGradient(cx-radius*0.15,cy-radius*0.15,0,cx,cy,radius);
-      belly.addColorStop(0,'rgba(255,255,255,0.13)');belly.addColorStop(0.6,'rgba(255,255,255,0.04)');belly.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=belly;ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);ctx.fill();
+      const belly=ctx.createLinearGradient(sqx,sqy,sqx+sq,sqy+sq);
+      belly.addColorStop(0,'rgba(255,255,255,0.14)');belly.addColorStop(0.5,'rgba(255,255,255,0.05)');belly.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=belly;ctx.beginPath();ctx.roundRect(sqx,sqy,sq,sq,sqr);ctx.fill();
       ctx.restore();
     }
 
@@ -1582,11 +1584,13 @@ function buildSnake() {
     const scaleX=1+Math.abs(dir.x)*0.12, scaleY=1+Math.abs(dir.y)*0.12;
     const headGrad=ctx.createRadialGradient(hx-hr*0.2*scaleX,hy-hr*0.2*scaleY,0,hx,hy,hr*Math.max(scaleX,scaleY));
     headGrad.addColorStop(0,'rgba(52,215,78,1)');headGrad.addColorStop(0.55,'rgba(24,165,48,1)');headGrad.addColorStop(1,'rgba(10,90,22,1)');
+    const hsz=hr*2*Math.max(scaleX,scaleY), hqx=hx-hr*Math.max(scaleX,scaleY), hqy=hy-hr*Math.max(scaleX,scaleY);
+    const hqr=Math.max(3,hr*0.38);
     ctx.fillStyle=headGrad;
-    ctx.beginPath();ctx.ellipse(hx,hy,hr*scaleX,hr*scaleY,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(hqx,hqy,hsz,hsz,hqr);ctx.fill();
     // Head highlight
     ctx.fillStyle='rgba(255,255,255,0.22)';
-    ctx.beginPath();ctx.ellipse(hx-hr*0.22*scaleX,hy-hr*0.22*scaleY,hr*0.44*scaleX,hr*0.28*scaleY,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.roundRect(hqx+hsz*0.08,hqy+hsz*0.08,hsz*0.42,hsz*0.28,hqr*0.5);ctx.fill();
     ctx.shadowBlur=0;
     // Eyes
     let e1x,e1y,e2x,e2y,tx=dir.x,ty=dir.y;
