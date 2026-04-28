@@ -52,7 +52,7 @@
   --shadow-card: 0 2px 12px rgba(19,16,43,0.06), 0 1px 3px rgba(19,16,43,0.04);
 
   /* Radii */
-  --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 28px; --r-2xl: 36px; --r-pill: 999px;
+  --r-xs: 0px; --r-sm: 0px; --r-md: 0px; --r-lg: 0px; --r-xl: 0px; --r-2xl: 0px; --r-pill: 0px;
 
   /* Typography */
   --font-display: 'Syne', sans-serif;
@@ -70,7 +70,7 @@
 }
 
 /* ═══════════════ RESET ═══════════════ */
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; border-radius: 0 !important; }
 html { height: 100%; overflow: hidden; background: var(--bg); }
 body {
   height: 100%; font-family: var(--font-body);
@@ -1504,7 +1504,7 @@ function buildSnake() {
       <div class="dpad">
         <div class="dpad-k dpad-up" id="dpad-up" ontouchstart="dpadP(event,'up')" ontouchend="dpadR('up')" onclick="snakeDir(0,-1)">▲</div>
         <div class="dpad-k dpad-left" id="dpad-left" ontouchstart="dpadP(event,'left')" ontouchend="dpadR('left')" onclick="snakeDir(-1,0)">◀</div>
-        <div class="dpad-k dpad-mid" id="dpad-mid" onclick="if(state!=='running')snakeStart()">▶</div>
+        <div class="dpad-k dpad-mid" id="dpad-mid" onclick="snakeTogglePause()">▶</div>
         <div class="dpad-k dpad-right" id="dpad-right" ontouchstart="dpadP(event,'right')" ontouchend="dpadR('right')" onclick="snakeDir(1,0)">▶</div>
         <div class="dpad-k dpad-down" id="dpad-down" ontouchstart="dpadP(event,'down')" ontouchend="dpadR('down')" onclick="snakeDir(0,1)">▼</div>
       </div>
@@ -1527,7 +1527,7 @@ function buildSnake() {
 
   const kh = e => {
     const m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]};
-    const v=m[e.key]; if(v){e.preventDefault();snakeDir(v[0],v[1]);} if(e.key===' '){e.preventDefault();if(state!=='running')snakeStart();}
+    const v=m[e.key]; if(v){e.preventDefault();snakeDir(v[0],v[1]);} if(e.key===' '){e.preventDefault();snakeTogglePause();}
   };
   document.addEventListener('keydown',kh);
   const _orig=window.closeGame;
@@ -1557,9 +1557,31 @@ function buildSnake() {
     }
     bigFoodLife=performance.now()+BIG_FOOD_DURATION;
   }
-  window.snakeDir = (x,y) => { if(dir.x===-x&&dir.y===-y)return;nextDir={x,y};if(state!=='running')snakeStart(); };
+  window.snakeDir = (x,y) => { 
+    if(dir.x===-x&&dir.y===-y)return;
+    nextDir={x,y};
+    if(state==='idle'||state==='dead')snakeStart();
+    else if(state==='paused')snakeTogglePause();
+  };
+  window.snakeTogglePause = () => {
+    if(state==='running') {
+      state='paused';
+      document.getElementById('dpad-mid').textContent='▶';
+      showToast('Game Paused');
+    } else if(state==='paused') {
+      state='running';
+      document.getElementById('dpad-mid').textContent='⏸';
+      showToast('Resumed');
+      lastTime=performance.now();
+      step(performance.now());
+    } else {
+      snakeStart();
+    }
+  };
   window.snakeStart = () => {
-    if(state==='dead')init();state='running';
+    if(state==='dead')init();
+    state='running';
+    document.getElementById('dpad-mid').textContent='⏸';
     document.getElementById('sn-overlay').style.display='none';
     nextBigFoodAt=performance.now()+BIG_FOOD_INTERVAL_MIN+Math.random()*(BIG_FOOD_INTERVAL_MAX-BIG_FOOD_INTERVAL_MIN);
     if(!window._snakeLoop)step(performance.now());
@@ -1607,6 +1629,7 @@ function buildSnake() {
   }
   function die() {
     state='dead';cancelAnimationFrame(window._snakeLoop);window._snakeLoop=null;
+    document.getElementById('dpad-mid').textContent='▶';
     SFX.snakeDie();SFX.vibrate([30,20,30,20,30]);S.played++;saveStats();
     let f=0; const fl=setInterval(()=>{
       if(!document.getElementById('snakeCanvas')){clearInterval(fl);return;}
