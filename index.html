@@ -167,11 +167,59 @@ body {
 .sp-tile-n{font-family:var(--font-display);font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--indigo),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .sp-tile-l{font-family:var(--font-ui);font-size:9px;font-weight:600;letter-spacing:1px;color:var(--t2);text-transform:uppercase;margin-top:3px}
 
-.sp-progress-wrap{width:min(260px,75vw);position:relative;z-index:2;animation:fadeUp 0.5s var(--out) 1.2s both}
-.sp-progress-track{height:4px;background:rgba(91,75,255,0.12);border-radius:4px;overflow:hidden;margin-bottom:8px}
-.sp-progress-bar{height:100%;background:linear-gradient(90deg,var(--indigo),var(--pink));border-radius:4px;width:0;box-shadow:0 0 10px rgba(91,75,255,0.4);animation:loadProg 2.2s var(--smooth) 1.4s forwards}
-@keyframes loadProg{to{width:100%}}
-.sp-progress-txt{font-family:var(--font-ui);font-size:10px;font-weight:500;color:var(--t3);text-align:center;letter-spacing:1px;text-transform:uppercase}
+.wave-menu {
+  border: 4px solid var(--indigo);
+  border-radius: 50px;
+  width: 200px;
+  height: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 32px 0;
+  cursor: pointer;
+  transition: ease 0.2s;
+  position: relative;
+  background: #fff;
+  z-index: 2;
+  animation: fadeUp 0.5s var(--out) 1.2s both;
+}
+
+.wave-menu li {
+  list-style: none;
+  height: 30px;
+  width: 4px;
+  border-radius: 10px;
+  background: var(--indigo);
+  margin: 0 6px;
+  padding: 0;
+  animation-name: wave1;
+  animation-duration: 0.3s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  transition: ease 0.2s;
+}
+
+.wave-menu:hover > li {
+  background: #fff;
+}
+
+.wave-menu:hover {
+  background: var(--indigo);
+}
+
+.wave-menu li:nth-child(2) { animation-name: wave2; animation-delay: 0.2s; }
+.wave-menu li:nth-child(3) { animation-name: wave3; animation-delay: 0.23s; animation-duration: 0.4s; }
+.wave-menu li:nth-child(4) { animation-name: wave4; animation-delay: 0.1s; animation-duration: 0.3s; }
+.wave-menu li:nth-child(5) { animation-delay: 0.5s; }
+.wave-menu li:nth-child(6) { animation-name: wave2; animation-duration: 0.5s; }
+.wave-menu li:nth-child(8) { animation-name: wave4; animation-delay: 0.4s; animation-duration: 0.25s; }
+.wave-menu li:nth-child(9) { animation-name: wave3; animation-delay: 0.15s; }
+
+@keyframes wave1 { from { transform: scaleY(1); } to { transform: scaleY(0.5); } }
+@keyframes wave2 { from { transform: scaleY(0.3); } to { transform: scaleY(0.6); } }
+@keyframes wave3 { from { transform: scaleY(0.6); } to { transform: scaleY(0.8); } }
+@keyframes wave4 { from { transform: scaleY(0.2); } to { transform: scaleY(0.5); } }
 
 /* ═══════════════════════════════════════════════
    BOTTOM NAV
@@ -269,12 +317,13 @@ body {
 .hero-cta {
   display:inline-flex;align-items:center;gap:8px;width:fit-content;
   font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:0.5px;
-  padding:11px 24px;border-radius:var(--r-pill);border:none;cursor:pointer;
-  background:#fff;color:var(--indigo-d);
-  box-shadow:0 4px 16px rgba(0,0,0,0.2);
-  transition:transform 0.18s var(--spring);
+  padding:11px 24px;border-radius:10px;cursor:pointer;
+  background:transparent;color:#fff;border:2px solid #fff;
+  box-shadow:inset 0 0 0 0 #fff;
+  transition:color 0.5s ease-out,box-shadow 0.5s ease-out;
 }
-.hero-cta:active{transform:scale(0.93)}
+.hero-cta:hover{color:#725AC1;box-shadow:inset 0 -100px 0 0 #fff;}
+.hero-cta:active{transform:scale(0.9);}
 .hero-deco{position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:110px;opacity:0.18;animation:heroDeco 6s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(255,61,138,0.5))}
 @keyframes heroDeco{0%,100%{transform:translateY(-50%) rotate(-4deg)}50%{transform:translateY(-58%) rotate(4deg)}}
 
@@ -356,10 +405,14 @@ body {
 .game-footer{display:flex;align-items:center;justify-content:space-between}
 .game-stars{font-size:10px;color:var(--amber)}
 .play-btn{
-  font-family:var(--font-ui);font-size:9px;font-weight:700;letter-spacing:0.5px;
-  padding:6px 14px;border-radius:var(--r-pill);border:none;cursor:pointer;
-  transition:transform 0.18s var(--spring);color:#fff;
+  font-family:var(--font-ui);font-size:10px;font-weight:800;letter-spacing:0.8px;
+  padding:8px 18px;border-radius:10px;cursor:pointer;
+  transition:all 0.4s ease-out;
+  background:transparent;color:#5b4bff;border:2px solid #5b4bff;
+  box-shadow:inset 0 0 0 0 #5b4bff;
+  min-height:34px;
 }
+.play-btn:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;border-color:#5b4bff;}
 .play-btn:active{transform:scale(0.88)}
 .game-card.wide{grid-column:1/-1;display:flex;flex-direction:row}
 .game-card.wide .game-art{width:120px;height:auto;flex-shrink:0;min-height:110px;border-radius:0}
@@ -495,10 +548,14 @@ body {
   transition:all 0.18s var(--spring);
 }
 .g-btn:active{transform:scale(0.93)}
-.g-btn-primary{background:linear-gradient(135deg,var(--indigo),var(--pink));color:#fff;box-shadow:0 6px 20px rgba(91,75,255,0.28)}
-.g-btn-secondary{background:var(--card);color:var(--t1);border:1.5px solid var(--border-md);box-shadow:var(--shadow-card)}
-.g-btn-danger{background:linear-gradient(135deg,#ff5252,#e02020);color:#fff;box-shadow:0 6px 20px rgba(255,82,82,0.25)}
-.g-btn-success{background:linear-gradient(135deg,#56cf5e,#20a828);color:#fff;box-shadow:0 6px 20px rgba(86,207,94,0.28)}
+.g-btn-primary{background:transparent;color:#5b4bff;border:2px solid #5b4bff;box-shadow:inset 0 0 0 0 #5b4bff;}
+.g-btn-primary:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
+.g-btn-secondary{background:transparent;color:#5b4bff;border:2px solid #5b4bff;box-shadow:inset 0 0 0 0 #5b4bff;}
+.g-btn-secondary:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
+.g-btn-danger{background:transparent;color:#e02020;border:2px solid #e02020;box-shadow:inset 0 0 0 0 #e02020;}
+.g-btn-danger:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #e02020;}
+.g-btn-success{background:transparent;color:#20a828;border:2px solid #20a828;box-shadow:inset 0 0 0 0 #20a828;}
+.g-btn-success:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #20a828;}
 .row{display:flex;gap:8px}
 .row.w-full,.w-full{width:100%}
 .row .g-btn{flex:1}
@@ -516,8 +573,8 @@ body {
    TIC TAC TOE
 ═══════════════════════════════════════════════ */
 .ttt-mode-row{display:flex;gap:6px;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-md);padding:4px}
-.ttt-mode-btn{flex:1;font-family:var(--font-ui);font-size:11px;font-weight:700;letter-spacing:0.5px;padding:9px;border-radius:var(--r-sm);border:none;cursor:pointer;color:var(--t2);background:transparent;transition:all 0.2s}
-.ttt-mode-btn.active{background:linear-gradient(135deg,var(--indigo),var(--pink));color:#fff;box-shadow:0 4px 14px rgba(91,75,255,0.25)}
+.ttt-mode-btn{flex:1;font-family:var(--font-ui);font-size:11px;font-weight:700;letter-spacing:0.5px;padding:9px;border-radius:10px;cursor:pointer;color:#5b4bff;background:transparent;border:2px solid #5b4bff;box-shadow:inset 0 0 0 0 #5b4bff;transition:color 0.5s ease-out,box-shadow 0.5s ease-out;}
+.ttt-mode-btn:hover,.ttt-mode-btn.active{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
 
 .ttt-players{display:flex;gap:10px;width:100%}
 .ttt-player{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:12px 10px;text-align:center;box-shadow:var(--shadow-card);transition:all 0.22s}
@@ -598,13 +655,14 @@ body {
 
 .dpad{display:grid;grid-template-columns:repeat(3,70px);grid-template-rows:repeat(3,70px);gap:8px;margin-top:6px}
 .dpad-k{
-  border-radius:var(--r-md);background:linear-gradient(180deg,#10161c,#0b0f14);border:1.5px solid rgba(86,207,94,0.14);
+  border-radius:10px;background:transparent;border:2px solid #5b4bff;
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:22px;color:#edf8ef;
-  box-shadow:0 12px 22px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.03);
-  transition:all 0.12s var(--spring);
+  cursor:pointer;font-size:22px;color:#5b4bff;
+  box-shadow:inset 0 0 0 0 #5b4bff;
+  transition:color 0.5s ease-out,box-shadow 0.5s ease-out;
 }
-.dpad-k:active,.dpad-k.pressed{background:rgba(86,207,94,0.14);border-color:#56cf5e;transform:scale(0.9);box-shadow:0 0 18px rgba(86,207,94,0.24);color:#56cf5e}
+.dpad-k:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
+.dpad-k:active,.dpad-k.pressed{transform:scale(0.9);color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
 .dpad-up{grid-area:1/2}.dpad-left{grid-area:2/1}.dpad-mid{grid-area:2/2;font-family:var(--font-ui);font-size:11px;font-weight:800;color:#d7ffdd;letter-spacing:1px;border-color:rgba(86,207,94,0.3);background:linear-gradient(180deg,rgba(26,61,34,0.95),rgba(18,41,24,0.96))}.dpad-right{grid-area:2/3}.dpad-down{grid-area:3/2}
 
 /* ═══════════════════════════════════════════════
@@ -649,11 +707,14 @@ body {
    CHESS
 ═══════════════════════════════════════════════ */
 .chess-diff-row,.chess-mode-row{display:flex;gap:5px;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-md);padding:4px}
-.chess-mode-btn,.chess-diff-btn{flex:1;font-family:var(--font-ui);font-size:clamp(8px,1.5vw,11px);font-weight:700;letter-spacing:0.5px;padding:clamp(6px,1vw,9px);border-radius:var(--r-sm);border:none;cursor:pointer;color:var(--t2);background:transparent;transition:all 0.2s}
-.chess-mode-btn.active{background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;box-shadow:0 4px 14px rgba(91,75,255,0.25)}
-.chess-diff-btn.easy{background:linear-gradient(135deg,#56cf5e,#20a828);color:#fff;box-shadow:0 4px 14px rgba(86,207,94,0.25)}
-.chess-diff-btn.medium{background:linear-gradient(135deg,var(--amber),#cc7200);color:#fff;box-shadow:0 4px 14px rgba(255,143,0,0.25)}
-.chess-diff-btn.hard{background:linear-gradient(135deg,var(--coral),#c02020);color:#fff;box-shadow:0 4px 14px rgba(255,82,82,0.25)}
+.chess-mode-btn,.chess-diff-btn{flex:1;font-family:var(--font-ui);font-size:clamp(8px,1.5vw,11px);font-weight:700;letter-spacing:0.5px;padding:clamp(6px,1vw,9px);border-radius:10px;cursor:pointer;color:#5b4bff;background:transparent;border:2px solid #5b4bff;box-shadow:inset 0 0 0 0 #5b4bff;transition:color 0.5s ease-out,box-shadow 0.5s ease-out;}
+.chess-mode-btn:hover,.chess-mode-btn.active{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
+.chess-diff-btn.easy{color:#20a828;border-color:#20a828;box-shadow:inset 0 0 0 0 #20a828;}
+.chess-diff-btn.easy:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #20a828;}
+.chess-diff-btn.medium{color:#cc7200;border-color:#cc7200;box-shadow:inset 0 0 0 0 #cc7200;}
+.chess-diff-btn.medium:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #cc7200;}
+.chess-diff-btn.hard{color:#c02020;border-color:#c02020;box-shadow:inset 0 0 0 0 #c02020;}
+.chess-diff-btn.hard:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #c02020;}
 .chess-board-wrap{position:relative;width:100%;height:auto;aspect-ratio:1;border-radius:var(--r-sm);border:2px solid var(--border-md);box-shadow:var(--shadow-md);overflow:hidden;max-height:80vh}
 .chess-coords-col{display:grid;grid-template-rows:repeat(8,1fr);position:absolute;left:0;top:0;bottom:0;width:6%;z-index:2;pointer-events:none}
 .chess-coords-row{display:grid;grid-template-columns:repeat(8,1fr);position:absolute;bottom:0;left:6%;right:0;height:6%;z-index:2;pointer-events:none}
@@ -790,7 +851,9 @@ body {
 /* ═══════════════════════════════════════════════
    RESPONSIVE
 ═══════════════════════════════════════════════ */
-button{min-height:44px}
+button{min-height:44px;position:relative;background:transparent;border:2px solid #5b4bff;border-radius:10px;color:#5b4bff;letter-spacing:1px;box-shadow:inset 0 0 0 0 #5b4bff;transition:color 0.5s ease-out,box-shadow 0.5s ease-out;cursor:pointer;}
+button:hover{color:#fff;box-shadow:inset 0 -100px 0 0 #5b4bff;}
+button:active{transform:scale(0.9);}
 button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt-cell,.rps-btn,.dpad-k{touch-action:manipulation}
 
 @media(max-width:380px){
@@ -828,10 +891,18 @@ button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt
     <div class="sp-tile"><div class="sp-tile-n">HD</div><div class="sp-tile-l">Quality</div></div>
     <div class="sp-tile"><div class="sp-tile-n">∞</div><div class="sp-tile-l">Fun</div></div>
   </div>
-  <div class="sp-progress-wrap" id="s-loader">
-    <div class="sp-progress-track"><div class="sp-progress-bar"></div></div>
-    <div class="sp-progress-txt">Initializing…</div>
-  </div>
+  <ul class="wave-menu" id="s-loader">
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+  </ul>
 </div>
 
 <!-- ════════════════ HOME ════════════════ -->
@@ -925,23 +996,23 @@ button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt
     <div class="games-grid" style="padding-bottom:8px">
       <div class="game-card" onclick="openGame('ttt')">
         <div class="game-art" style="background:linear-gradient(135deg,#f0eeff,#ddd8ff)"><div class="art-glow" style="background:rgba(91,75,255,0.35)"></div><span class="art-icon">⭕</span></div>
-        <div class="game-info"><div class="game-name">Tic Tac Toe</div><div class="game-desc">Outsmart the AI or 2-player local</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn" style="background:linear-gradient(135deg,var(--indigo),var(--indigo-l));box-shadow:0 4px 12px rgba(91,75,255,0.3)">PLAY</button></div></div>
+        <div class="game-info"><div class="game-name">Tic Tac Toe</div><div class="game-desc">Outsmart the AI or 2-player local</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn">PLAY</button></div></div>
       </div>
       <div class="game-card" onclick="openGame('snake')">
         <div class="game-art" style="background:linear-gradient(135deg,#edfff0,#d4f8d8)"><div class="art-glow" style="background:rgba(86,207,94,0.4)"></div><span class="art-icon">🐍</span></div>
-        <div class="game-info"><div class="game-name">Snake</div><div class="game-desc">Eat, grow, survive — beat your best</div><div class="game-footer"><div class="game-stars">★★★★☆</div><button class="play-btn" style="background:linear-gradient(135deg,#56cf5e,#20a828);box-shadow:0 4px 12px rgba(86,207,94,0.3)">PLAY</button></div></div>
+        <div class="game-info"><div class="game-name">Snake</div><div class="game-desc">Eat, grow, survive — beat your best</div><div class="game-footer"><div class="game-stars">★★★★☆</div><button class="play-btn">PLAY</button></div></div>
       </div>
       <div class="game-card" onclick="openGame('memory')">
         <div class="game-art" style="background:linear-gradient(135deg,#faf0ff,#edd8ff)"><div class="art-glow" style="background:rgba(168,85,247,0.35)"></div><span class="art-icon">🃏</span></div>
-        <div class="game-info"><div class="game-name">Memory</div><div class="game-desc">Flip cards, find pairs quickly</div><div class="game-footer"><div class="game-stars">★★★★☆</div><button class="play-btn" style="background:linear-gradient(135deg,var(--violet),#7c20d0);box-shadow:0 4px 12px rgba(168,85,247,0.3)">PLAY</button></div></div>
+        <div class="game-info"><div class="game-name">Memory</div><div class="game-desc">Flip cards, find pairs quickly</div><div class="game-footer"><div class="game-stars">★★★★☆</div><button class="play-btn">PLAY</button></div></div>
       </div>
       <div class="game-card" onclick="openGame('rps')">
         <div class="game-art" style="background:linear-gradient(135deg,#fff0f3,#ffd8e4)"><div class="art-glow" style="background:rgba(255,61,138,0.35)"></div><span class="art-icon">✊</span></div>
-        <div class="game-info"><div class="game-name">Rock Paper</div><div class="game-desc">Scissors — Challenge the AI</div><div class="game-footer"><div class="game-stars">★★★☆☆</div><button class="play-btn" style="background:linear-gradient(135deg,var(--pink),#cc1060);box-shadow:0 4px 12px rgba(255,61,138,0.3)">PLAY</button></div></div>
+        <div class="game-info"><div class="game-name">Rock Paper</div><div class="game-desc">Scissors — Challenge the AI</div><div class="game-footer"><div class="game-stars">★★★☆☆</div><button class="play-btn">PLAY</button></div></div>
       </div>
       <div class="game-card wide" onclick="openGame('chess')">
         <div class="game-art" style="width:120px;flex-shrink:0;height:auto;border-radius:0;min-height:110px;background:linear-gradient(135deg,#fffbf0,#ffefd8)"><div class="art-glow" style="background:rgba(255,143,0,0.3)"></div><span class="art-icon" style="font-size:50px">♟️</span></div>
-        <div class="game-info" style="padding:16px"><div class="game-name">Chess</div><div class="game-desc">Full legal chess with AI bot (Easy/Medium/Hard) or 2-player local.</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn" style="background:linear-gradient(135deg,var(--amber),#cc7200);box-shadow:0 4px 12px rgba(255,143,0,0.3)">PLAY</button></div></div>
+        <div class="game-info" style="padding:16px"><div class="game-name">Chess</div><div class="game-desc">Full legal chess with AI bot (Easy/Medium/Hard) or 2-player local.</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn">PLAY</button></div></div>
       </div>
     </div>
     <div style="height:16px"></div>
