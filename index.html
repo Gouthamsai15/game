@@ -460,22 +460,29 @@ body {
 .games-headline{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--t1)}
 .games-sub{font-size:12px;color:var(--t2);margin-top:2px}
 
-.games-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:4px 16px}
+.games-grid{
+  display:flex;flex-direction:column;gap:10px;
+  padding:10px 16px calc(var(--nav-h) + var(--safe-b) + 34px);
+}
 .game-card {
   border-radius:var(--r-xl);overflow:hidden;cursor:pointer;
   background:var(--card);border:1px solid var(--border);
   box-shadow:var(--shadow-sm);
   transition:transform 0.22s var(--spring),box-shadow 0.22s;
-  position:relative;
+  position:relative;display:flex;align-items:stretch;min-height:112px;
 }
 .game-card:active{transform:scale(0.95);box-shadow:var(--shadow-xs)}
-.game-art{height:110px;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;overflow:hidden}
+.game-art{
+  width:112px;min-height:112px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;position:relative;overflow:hidden;
+}
 .art-glow{position:absolute;width:80px;height:80px;border-radius:50%;filter:blur(28px);top:50%;left:50%;transform:translate(-50%,-50%)}
 .art-icon{position:relative;z-index:1;transition:transform 0.22s var(--spring);filter:drop-shadow(0 4px 10px rgba(0,0,0,0.12))}
 .game-card:active .art-icon{transform:scale(1.18) rotate(-5deg)}
-.game-info{padding:12px 14px 15px}
+.game-info{padding:13px 14px;display:flex;flex:1;min-width:0;flex-direction:column;justify-content:center}
 .game-name{font-family:var(--font-ui);font-size:13px;font-weight:700;letter-spacing:0.3px;color:var(--t1);margin-bottom:2px}
-.game-desc{font-size:10px;color:var(--t2);line-height:1.5;margin-bottom:10px}
+.game-desc{font-size:10px;color:var(--t2);line-height:1.45;margin-bottom:10px}
 .game-footer{display:flex;align-items:center;justify-content:space-between}
 .game-stars{font-size:10px;color:var(--amber)}
 .play-btn{
@@ -488,8 +495,8 @@ body {
 }
 .play-btn:hover{background:var(--indigo-l);box-shadow:0 4px 20px rgba(91,75,255,0.5);}
 .play-btn:active{transform:scale(0.9)}
-.game-card.wide{grid-column:1/-1;display:flex;flex-direction:row}
-.game-card.wide .game-art{width:120px;height:auto;flex-shrink:0;min-height:110px;border-radius:0}
+.game-card.wide{display:flex;flex-direction:row}
+.game-card.wide .game-art{width:112px;height:auto;flex-shrink:0;min-height:112px;border-radius:0}
 .game-card.wide .game-info{flex:1}
 
 /* ═══════════════════════════════════════════════
@@ -1073,7 +1080,11 @@ button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt
 
 @media(max-width:380px){
   .dpad{grid-template-columns:repeat(3,62px);grid-template-rows:repeat(3,62px);gap:7px}
-  .games-grid{padding:4px 12px;gap:10px}
+  .games-grid{padding:10px 12px calc(var(--nav-h) + var(--safe-b) + 34px);gap:10px}
+  .game-art{width:96px;min-height:108px;font-size:40px}
+  .game-card.wide .game-art{width:96px;min-height:108px}
+  .game-info{padding:12px}
+  .play-btn{padding:8px 14px}
   .quick-grid{grid-template-columns:1fr}
   .hero-banner{height:175px}
 }
@@ -1083,6 +1094,127 @@ button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt
   #bottom-nav.hidden{transform:translateX(-50%) translateY(120%);opacity:0}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.001ms !important;transition-duration:0.001ms !important}}
+
+/* ═══════════════════════════════════════════════
+   HAND CRICKET
+═══════════════════════════════════════════════ */
+.hc-wrap { display:flex;flex-direction:column;gap:0;width:100%;max-width:420px;margin:0 auto; }
+.hc-mode-row { display:flex;gap:8px;padding:0 4px;margin-bottom:12px; }
+.hc-mode-btn {
+  flex:1;padding:10px 6px;border-radius:var(--r-md);
+  font-family:var(--font-ui);font-size:11px;font-weight:700;letter-spacing:0.5px;
+  background:var(--card);border:1.5px solid var(--border);color:var(--t2);
+  transition:all 0.2s var(--smooth);min-height:40px;
+}
+.hc-mode-btn.active { background:var(--indigo);border-color:var(--indigo);color:#fff;box-shadow:0 4px 14px rgba(91,75,255,0.35); }
+
+.hc-scoreboard {
+  display:flex;gap:8px;margin-bottom:10px;
+}
+.hc-score-panel {
+  flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-lg);
+  padding:12px 10px;text-align:center;transition:border-color 0.3s,box-shadow 0.3s;
+}
+.hc-score-panel.batting {
+  border-color:var(--teal);box-shadow:0 0 16px rgba(34,197,94,0.25);
+}
+.hc-score-panel.bowling {
+  border-color:var(--indigo);box-shadow:0 0 12px rgba(91,75,255,0.15);
+}
+.hc-player-lbl { font-family:var(--font-ui);font-size:9px;font-weight:600;letter-spacing:1px;color:var(--t2);text-transform:uppercase;margin-bottom:4px; }
+.hc-player-runs { font-family:var(--font-display);font-size:32px;font-weight:800;line-height:1;color:var(--t1); }
+.hc-player-tag {
+  display:inline-block;margin-top:5px;padding:2px 10px;border-radius:var(--r-pill);
+  font-family:var(--font-ui);font-size:8px;font-weight:700;letter-spacing:0.5px;
+}
+.tag-bat { background:rgba(34,197,94,0.12);color:var(--teal);border:1px solid rgba(34,197,94,0.3); }
+.tag-bowl { background:rgba(91,75,255,0.12);color:var(--indigo-l);border:1px solid rgba(91,75,255,0.3); }
+.tag-target { background:rgba(255,143,0,0.12);color:var(--amber);border:1px solid rgba(255,143,0,0.3); }
+
+.hc-status-bar {
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:10px 14px;text-align:center;margin-bottom:10px;min-height:46px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.hc-status-txt { font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--t1); }
+.hc-status-txt .hl { color:var(--teal); }
+.hc-status-txt .hl-out { color:var(--coral); }
+.hc-status-txt .hl-amber { color:var(--amber); }
+
+.hc-countdown-ring {
+  width:36px;height:36px;flex-shrink:0;position:relative;
+}
+.hc-countdown-ring svg { transform:rotate(-90deg); }
+.hc-countdown-ring circle { transition:stroke-dashoffset 0.9s linear; }
+.hc-countdown-num {
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--t1);
+}
+
+.hc-arena {
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;
+}
+.hc-panel {
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-lg);
+  padding:10px;transition:border-color 0.3s,box-shadow 0.3s;
+}
+.hc-panel.active-player {
+  border-color:var(--indigo);box-shadow:0 0 18px rgba(91,75,255,0.3);
+}
+.hc-panel-lbl { font-family:var(--font-ui);font-size:9px;font-weight:600;letter-spacing:1px;color:var(--t2);margin-bottom:8px;text-transform:uppercase; }
+.hc-fingers {
+  display:grid;grid-template-columns:repeat(3,1fr);gap:5px;
+}
+.hc-finger-btn {
+  aspect-ratio:1;border-radius:var(--r-md);border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--t1);
+  font-family:var(--font-display);font-size:18px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.18s var(--spring);min-height:44px;
+}
+.hc-finger-btn:hover { border-color:var(--indigo);background:rgba(91,75,255,0.15);transform:scale(1.06); }
+.hc-finger-btn:active { transform:scale(0.92); }
+.hc-finger-btn.selected {
+  background:var(--indigo);border-color:var(--indigo);color:#fff;
+  box-shadow:0 0 14px rgba(91,75,255,0.5);transform:scale(1.08);
+}
+.hc-finger-btn.locked { opacity:0.35;pointer-events:none; }
+.hc-finger-btn.reveal-out {
+  background:var(--coral) !important;border-color:var(--coral) !important;
+  box-shadow:0 0 18px rgba(255,82,82,0.5) !important;animation:hcPulse 0.4s var(--spring);
+}
+.hc-finger-btn.reveal-run {
+  background:var(--teal) !important;border-color:var(--teal) !important;
+  box-shadow:0 0 18px rgba(34,197,94,0.5) !important;animation:hcPulse 0.4s var(--spring);
+}
+@keyframes hcPulse { 0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+.hc-choice-reveal {
+  text-align:center;font-family:var(--font-display);font-size:13px;font-weight:700;
+  color:var(--t2);margin-top:6px;min-height:20px;letter-spacing:0.3px;
+}
+
+.hc-toss-wrap {
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 16px;
+}
+.hc-toss-title { font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--t1);text-align:center; }
+.hc-toss-sub { font-family:var(--font-ui);font-size:12px;color:var(--t2);text-align:center; }
+.hc-toss-coin {
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--amber),#ffca28);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;box-shadow:0 8px 28px rgba(255,143,0,0.4);
+  animation:hcCoinSpin 0.6s var(--spring);
+}
+@keyframes hcCoinSpin { from{transform:rotateY(0deg) scale(0.5)} to{transform:rotateY(360deg) scale(1)} }
+.hc-toss-btns { display:flex;gap:10px;width:100%; }
+.hc-toss-btn {
+  flex:1;padding:14px;border-radius:var(--r-lg);
+  font-family:var(--font-ui);font-size:13px;font-weight:700;letter-spacing:0.5px;
+  border:1.5px solid var(--border-hi);color:var(--t1);background:var(--card);
+  transition:all 0.2s var(--spring);min-height:50px;
+}
+.hc-toss-btn:hover { background:var(--indigo);border-color:var(--indigo);box-shadow:0 4px 16px rgba(91,75,255,0.35); }
 </style>
 </head>
 <body>
@@ -1186,7 +1318,7 @@ button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt
       <div class="games-headline">Games</div>
       <div class="games-sub">Choose your challenge</div>
     </div>
-    <div class="games-grid" style="padding-bottom:8px">
+    <div class="games-grid">
       <div class="game-card" onclick="openGame('ttt')">
         <div class="game-art" style="background:linear-gradient(135deg,#f0eeff,#ddd8ff)"><div class="art-glow" style="background:rgba(91,75,255,0.35)"></div><span class="art-icon">⭕</span></div>
         <div class="game-info"><div class="game-name">Tic Tac Toe</div><div class="game-desc">Outsmart the AI or 2-player local</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn">PLAY</button></div></div>
@@ -1203,12 +1335,15 @@ button,.game-card,.feat-card,.quick-card,.hero-banner,.mem-card,.chess-cell,.ttt
         <div class="game-art" style="background:linear-gradient(135deg,#fff0f3,#ffd8e4)"><div class="art-glow" style="background:rgba(255,61,138,0.35)"></div><span class="art-icon">✊</span></div>
         <div class="game-info"><div class="game-name">Rock Paper</div><div class="game-desc">Scissors — Challenge the AI</div><div class="game-footer"><div class="game-stars">★★★☆☆</div><button class="play-btn">PLAY</button></div></div>
       </div>
+      <div class="game-card" onclick="openGame('hcricket')">
+        <div class="game-art" style="background:linear-gradient(135deg,#f0fff4,#d4f8e4)"><div class="art-glow" style="background:rgba(34,197,94,0.4)"></div><span class="art-icon">🏏</span></div>
+        <div class="game-info"><div class="game-name">Hand Cricket</div><div class="game-desc">Pick 1–6 fingers — bat, bowl, score!</div><div class="game-footer"><div class="game-stars">★★★★☆</div><button class="play-btn">PLAY</button></div></div>
+      </div>
       <div class="game-card wide" onclick="openGame('chess')">
-        <div class="game-art" style="width:120px;flex-shrink:0;height:auto;border-radius:0;min-height:110px;background:linear-gradient(135deg,#fffbf0,#ffefd8)"><div class="art-glow" style="background:rgba(255,143,0,0.3)"></div><span class="art-icon" style="font-size:50px">♟️</span></div>
-        <div class="game-info" style="padding:16px"><div class="game-name">Chess</div><div class="game-desc">Full legal chess with AI bot (Easy/Medium/Hard) or 2-player local.</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn">PLAY</button></div></div>
+        <div class="game-art" style="background:linear-gradient(135deg,#fffbf0,#ffefd8)"><div class="art-glow" style="background:rgba(255,143,0,0.3)"></div><span class="art-icon" style="font-size:50px">♟️</span></div>
+        <div class="game-info"><div class="game-name">Chess</div><div class="game-desc">Full legal chess with AI bot (Easy/Medium/Hard) or 2-player local.</div><div class="game-footer"><div class="game-stars">★★★★★</div><button class="play-btn">PLAY</button></div></div>
       </div>
     </div>
-    <div style="height:16px"></div>
   </div>
 </div>
 
@@ -1454,11 +1589,12 @@ function showScreen(name) {
 ═══════════════════════════════════════════════════ */
 let activeGame = null;
 const GAME_META = {
-  ttt:    { title: 'TIC TAC TOE', sub: '2-Player / vs AI' },
-  snake:  { title: 'SNAKE',       sub: 'Arcade Mode' },
-  memory: { title: 'MEMORY',      sub: 'Flip & Match' },
-  rps:    { title: 'ROCK PAPER',  sub: 'Scissors — vs CPU' },
-  chess:  { title: 'CHESS',       sub: 'Classic Strategy' }
+  ttt:      { title: 'TIC TAC TOE',    sub: '2-Player / vs AI' },
+  snake:    { title: 'SNAKE',          sub: 'Arcade Mode' },
+  memory:   { title: 'MEMORY',         sub: 'Flip & Match' },
+  rps:      { title: 'ROCK PAPER',     sub: 'Scissors — vs CPU' },
+  chess:    { title: 'CHESS',          sub: 'Classic Strategy' },
+  hcricket: { title: 'HAND CRICKET',   sub: 'vs Bot / 2 Player' }
 };
 
 function openGame(id) {
@@ -1476,7 +1612,7 @@ function openGame(id) {
       <div class="loader"></div>
       <div class="loader-text">Loading ${meta.title}</div>
     </div>`;
-  setTimeout(() => { const b={ttt:buildTTT,snake:buildSnake,memory:buildMemory,rps:buildRPS,chess:buildChess}; b[id]?.(); }, 550);
+  setTimeout(() => { const b={ttt:buildTTT,snake:buildSnake,memory:buildMemory,rps:buildRPS,chess:buildChess,hcricket:buildHCricket}; b[id]?.(); }, 550);
 }
 function closeGame() {
   stopAllGames(); SFX.navigate();
@@ -2456,6 +2592,424 @@ function buildChess() {
   chessMode='bot';
   chessDifficulty=LS.get('nx_chess_diff','medium');
   initBoard();render();
+}
+
+/* ═══════════════════════════════════════════════════
+   HAND CRICKET
+═══════════════════════════════════════════════════ */
+function buildHCricket() {
+  /* ── State ── */
+  let hcMode = 'bot';          // 'bot' | '2p'
+  let phase = 'toss';          // 'toss' | 'playing' | 'over'
+  let innings = 1;             // 1 or 2
+  let batting = 'p1';          // 'p1' | 'p2'  (who is batting this innings)
+  let scores = { p1: 0, p2: 0 };
+  let target = null;           // set after 1st innings
+  let p1Choice = null, p2Choice = null;
+  let countdownVal = 0;
+  let countdownTimer = null;
+  let turnLocked = false;
+  let botDelay = null;
+  let lastResult = '';
+
+  const NAMES = () => ({ p1: 'Player', p2: hcMode === 'bot' ? 'Bot' : 'Player 2' });
+  const vp = () => document.getElementById('game-viewport');
+
+  /* ── SFX helpers ── */
+  function hcSfxPick()  { SFX.tap(); }
+  function hcSfxOut()   { SFX.error(); SFX.vibrate([30,20,30]); }
+  function hcSfxRun()   { SFX.snakeEat(); }
+  function hcSfxWin()   { SFX.success(); SFX.vibrate([20,40,20]); }
+
+  /* ══════════════ initGame ══════════════ */
+  function initGame() {
+    phase = 'toss'; innings = 1; batting = 'p1';
+    scores = { p1: 0, p2: 0 }; target = null;
+    p1Choice = null; p2Choice = null; lastResult = '';
+    clearTimers();
+    renderToss();
+  }
+
+  /* ══════════════ TOSS ══════════════ */
+  function renderToss() {
+    setScorePill('TOSS');
+    vp().innerHTML = `
+      <div class="g-wrap">
+        <div class="hc-wrap">
+          <div class="hc-mode-row">
+            <button class="hc-mode-btn ${hcMode==='bot'?'active':''}" onclick="hcSetMode('bot')">PLAYER VS BOT</button>
+            <button class="hc-mode-btn ${hcMode==='2p'?'active':''}" onclick="hcSetMode('2p')">👥 2 PLAYER</button>
+          </div>
+          <div class="hc-toss-wrap">
+            <div class="hc-toss-title">🏏 Hand Cricket</div>
+            <div class="hc-toss-sub">Win the toss to choose Bat or Bowl</div>
+            <div class="hc-toss-coin">🪙</div>
+            <div class="hc-toss-sub" id="hc-toss-msg">${NAMES().p1} — call it!</div>
+            <div class="hc-toss-btns">
+              <button class="hc-toss-btn" onclick="hcToss('heads')">HEADS</button>
+              <button class="hc-toss-btn" onclick="hcToss('tails')">TAILS</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  window.hcToss = function(call) {
+    const result = Math.random() < 0.5 ? 'heads' : 'tails';
+    const won = call === result;
+    const msg = document.getElementById('hc-toss-msg');
+    if (msg) msg.textContent = `Toss: ${result.toUpperCase()}! ${NAMES().p1} ${won ? 'won' : 'lost'} the toss.`;
+    // After short pause, show bat/bowl choice
+    setTimeout(() => {
+      if (won) renderChoiceBatBowl();
+      else {
+        // Bot/P2 won — they bowl, P1 bats
+        batting = 'p1';
+        startInnings();
+      }
+    }, 900);
+  };
+
+  function renderChoiceBatBowl() {
+    vp().innerHTML = `
+      <div class="g-wrap">
+        <div class="hc-wrap">
+          <div class="hc-toss-wrap">
+            <div class="hc-toss-title">You won the toss!</div>
+            <div class="hc-toss-sub">Choose to bat or bowl first</div>
+            <div class="hc-toss-coin">🏏</div>
+            <div class="hc-toss-btns">
+              <button class="hc-toss-btn" onclick="hcChoose('bat')">🏏 BAT</button>
+              <button class="hc-toss-btn" onclick="hcChoose('bowl')">🎳 BOWL</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  window.hcChoose = function(choice) {
+    batting = choice === 'bat' ? 'p1' : 'p2';
+    startInnings();
+  };
+
+  /* ══════════════ startInnings ══════════════ */
+  function startInnings() {
+    phase = 'playing';
+    p1Choice = null; p2Choice = null; lastResult = '';
+    clearTimers();
+    render();
+    setTimeout(() => startTurn(), 400);
+  }
+
+  /* ══════════════ startTurn ══════════════ */
+  function startTurn() {
+    if (phase !== 'playing') return;
+    p1Choice = null; p2Choice = null;
+    turnLocked = false;
+    updateScorePanels();
+    updateStatus(`Innings ${innings} · <span class="hl">${NAMES()[batting]} batting</span>`, false, true);
+    const r1 = document.getElementById('hc-reveal-p1');
+    const r2 = document.getElementById('hc-reveal-p2');
+    if (r1) r1.textContent = '';
+    if (r2) r2.textContent = hcMode === 'bot' ? 'Picking...' : '';
+    updateFingerBtns();
+    startCountdown();
+    // Bot picks after a human-feeling delay
+    if (hcMode === 'bot') {
+      const delay = 350 + Math.random() * 550;
+      botDelay = setTimeout(() => {
+        if (turnLocked) return;
+        p2Choice = Math.ceil(Math.random() * 6);
+        const r2 = document.getElementById('hc-reveal-p2');
+        if (r2) r2.textContent = 'Ready';
+        updateFingerBtns();
+        maybeRevealResult();
+      }, delay);
+    }
+  }
+
+  /* ══════════════ Countdown ══════════════ */
+  function startCountdown() {
+    countdownVal = 3;
+    updateCountdown();
+    countdownTimer = setInterval(() => {
+      countdownVal--;
+      updateCountdown();
+      if (countdownVal <= 0) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        if (!p1Choice) {
+          timeoutOut('p1');
+          return;
+        }
+        if (hcMode === '2p' && !p2Choice) {
+          timeoutOut('p2');
+          return;
+        }
+        if (!p2Choice) p2Choice = Math.ceil(Math.random() * 6);
+        revealResult();
+      }
+    }, 1000);
+  }
+
+  function updateCountdown() {
+    const ring = document.getElementById('hc-cd-ring');
+    const num  = document.getElementById('hc-cd-num');
+    const r = 15, circ = 2 * Math.PI * r;
+    if (ring) {
+      const offset = circ - (countdownVal / 3) * circ;
+      ring.style.strokeDashoffset = offset;
+    }
+    if (num) num.textContent = countdownVal > 0 ? countdownVal : '!';
+  }
+
+  /* ══════════════ handleSelection ══════════════ */
+  window.hcSelect = function(player, num) {
+    if (turnLocked || phase !== 'playing') return;
+    if (player === 'p1' && p1Choice) return;
+    if (player === 'p2' && p2Choice) return;
+    hcSfxPick(); SFX.vibrate(8);
+    if (player === 'p1') p1Choice = num;
+    if (player === 'p2') p2Choice = num;
+    updateFingerBtns();
+    maybeRevealResult();
+  };
+
+  function maybeRevealResult() {
+    // If both selected, reveal early
+    if (p1Choice && p2Choice) {
+      clearTimers();
+      setTimeout(revealResult, 220);
+    }
+  }
+
+  function updateFingerBtns() {
+    for (let i = 1; i <= 6; i++) {
+      const b1 = document.getElementById(`hc-f-p1-${i}`);
+      const b2 = document.getElementById(`hc-f-p2-${i}`);
+      if (b1) {
+        b1.className = 'hc-finger-btn' + (p1Choice === i ? ' selected' : '') + (p1Choice && p1Choice !== i ? ' locked' : '');
+      }
+      if (b2) {
+        const showBotChoice = hcMode !== 'bot' || turnLocked;
+        b2.className = 'hc-finger-btn' + (p2Choice === i && showBotChoice ? ' selected' : '') + ((p2Choice && p2Choice !== i) || hcMode === 'bot' ? ' locked' : '');
+      }
+    }
+  }
+
+  /* ══════════════ revealResult ══════════════ */
+  function revealResult() {
+    turnLocked = true;
+    clearTimers();
+    const c1 = p1Choice, c2 = p2Choice;
+
+    // Highlight chosen buttons
+    for (let i = 1; i <= 6; i++) {
+      const b1 = document.getElementById(`hc-f-p1-${i}`);
+      const b2 = document.getElementById(`hc-f-p2-${i}`);
+      if (b1 && i === c1) b1.classList.add(c1 === c2 ? 'reveal-out' : 'reveal-run');
+      if (b2 && i === c2) b2.classList.add(c1 === c2 ? 'reveal-out' : 'reveal-run');
+    }
+
+    const r1 = document.getElementById('hc-reveal-p1');
+    const r2 = document.getElementById('hc-reveal-p2');
+    if (r1) r1.textContent = `Chose: ${c1}`;
+    if (r2) r2.textContent = `Chose: ${c2}`;
+
+    if (c1 === c2) {
+      checkOut();
+    } else {
+      addRuns(c1, c2);
+    }
+  }
+
+  /* ══════════════ checkOut ══════════════ */
+  function checkOut() {
+    hcSfxOut();
+    const N = NAMES();
+    lastResult = `🚨 OUT! Same number — ${N[batting]} is dismissed!`;
+    updateStatus(lastResult, true);
+    setTimeout(() => switchInnings(), 1400);
+  }
+
+  function timeoutOut(player) {
+    turnLocked = true;
+    clearTimers();
+    hcSfxOut();
+    const N = NAMES();
+    const dismissed = N[player];
+    lastResult = `🚨 OUT! ${dismissed} did not choose in time.`;
+    const reveal = document.getElementById(`hc-reveal-${player}`);
+    if (reveal) reveal.textContent = 'Timed out';
+    updateStatus(lastResult, true);
+    setTimeout(() => switchInnings(), 1400);
+  }
+
+  /* ══════════════ addRuns ══════════════ */
+  function addRuns(c1, c2) {
+    const runs = batting === 'p1' ? c1 : c2;
+    scores[batting] += runs;
+    updateScorePanels();
+    hcSfxRun();
+    const N = NAMES();
+    lastResult = `+${runs} runs for ${N[batting]}!`;
+    // Check if target chased
+    if (innings === 2 && target !== null) {
+      if (scores[batting] > target) {
+        updateStatus(lastResult, false);
+        updateScorePill();
+        setTimeout(endGame, 650);
+        return;
+      }
+    }
+    updateStatus(lastResult, false);
+    updateScorePill();
+    setTimeout(() => startTurn(), 700);
+  }
+
+  function updateScorePill() {
+    const N = NAMES();
+    if (innings === 1) setScorePill(`${N.p1}: ${scores.p1}  ${N.p2}: ${scores.p2}`);
+    else setScorePill(`Target: ${target+1}  ${N[batting]}: ${scores[batting]}`);
+  }
+
+  function updateScorePanels() {
+    const p1 = document.getElementById('hc-score-p1');
+    const p2 = document.getElementById('hc-score-p2');
+    if (p1) p1.textContent = scores.p1;
+    if (p2) p2.textContent = scores.p2;
+  }
+
+  /* ══════════════ switchInnings ══════════════ */
+  function switchInnings() {
+    if (innings === 1) {
+      innings = 2;
+      target = scores[batting];
+      batting = batting === 'p1' ? 'p2' : 'p1';
+      const N = NAMES();
+      showToast(`🎳 Innings 2 — ${N[batting]} chases ${target + 1}`);
+      startInnings();
+    } else {
+      endGame();
+    }
+  }
+
+  /* ══════════════ endGame ══════════════ */
+  function endGame() {
+    phase = 'over';
+    clearTimers();
+    const N = NAMES();
+    let winner, emoji, body;
+    if (scores.p1 > scores.p2) {
+      winner = N.p1; emoji = '🏆';
+      body = `${N.p1} wins! ${scores.p1} vs ${scores.p2}`;
+      if (hcMode === 'bot') { recordResult('win'); }
+    } else if (scores.p2 > scores.p1) {
+      winner = N.p2; emoji = hcMode === 'bot' ? '🤖' : '🏆';
+      body = `${N.p2} wins! ${scores.p2} vs ${scores.p1}`;
+      if (hcMode === 'bot') { recordResult('loss'); }
+    } else {
+      winner = null; emoji = '🤝';
+      body = `It's a tie! Both scored ${scores.p1}`;
+      recordResult('draw');
+    }
+    S.played++; saveStats(); hcSfxWin();
+    setScorePill('GAME OVER');
+    setTimeout(() => {
+      showModal(emoji, winner ? `${winner.toUpperCase()} WINS!` : 'TIE GAME!', body, 'PLAY AGAIN', () => initGame(), !!winner);
+    }, 600);
+  }
+
+  /* ══════════════ Render ══════════════ */
+  function render() {
+    const N = NAMES();
+    const isBatP1 = batting === 'p1';
+    const p2Visible = hcMode === '2p'; // hide p2 buttons in bot mode (bot picks auto)
+
+    vp().innerHTML = `
+      <div class="g-wrap">
+        <div class="hc-wrap">
+          <div class="hc-mode-row">
+            <button class="hc-mode-btn ${hcMode==='bot'?'active':''}" onclick="hcSetMode('bot')">PLAYER VS BOT</button>
+            <button class="hc-mode-btn ${hcMode==='2p'?'active':''}" onclick="hcSetMode('2p')">👥 2 PLAYER</button>
+          </div>
+
+          <div class="hc-scoreboard">
+            <div class="hc-score-panel ${isBatP1?'batting':'bowling'}">
+              <div class="hc-player-lbl">${N.p1}</div>
+              <div class="hc-player-runs" id="hc-score-p1">${scores.p1}</div>
+              <div class="hc-player-tag ${isBatP1?'tag-bat':'tag-bowl'}">${isBatP1?'🏏 BAT':'🎳 BOWL'}</div>
+              ${innings===2&&!isBatP1?`<div class="hc-player-tag tag-target" style="margin-top:3px">TGT ${target+1}</div>`:''}
+            </div>
+            <div class="hc-score-panel ${!isBatP1?'batting':'bowling'}">
+              <div class="hc-player-lbl">${N.p2}</div>
+              <div class="hc-player-runs" id="hc-score-p2">${scores.p2}</div>
+              <div class="hc-player-tag ${!isBatP1?'tag-bat':'tag-bowl'}">${!isBatP1?'🏏 BAT':'🎳 BOWL'}</div>
+              ${innings===2&&isBatP1?`<div class="hc-player-tag tag-target" style="margin-top:3px">TGT ${target+1}</div>`:''}
+            </div>
+          </div>
+
+          <div class="hc-status-bar">
+            <div class="hc-countdown-ring">
+              <svg width="36" height="36" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                <circle id="hc-cd-ring" cx="18" cy="18" r="15" fill="none"
+                  stroke="var(--indigo)" stroke-width="3"
+                  stroke-dasharray="${2*Math.PI*15}" stroke-dashoffset="0"
+                  stroke-linecap="round"/>
+              </svg>
+              <div class="hc-countdown-num" id="hc-cd-num">3</div>
+            </div>
+            <div class="hc-status-txt" id="hc-status">
+              Innings ${innings} · <span class="hl">${N[batting]} batting</span>
+            </div>
+          </div>
+
+          <div class="hc-arena">
+            <div class="hc-panel ${!p2Visible||hcMode==='bot'?'active-player':''}">
+              <div class="hc-panel-lbl">🧍 ${N.p1}</div>
+              <div class="hc-fingers">
+                ${[1,2,3,4,5,6].map(n=>`<button id="hc-f-p1-${n}" class="hc-finger-btn" onclick="hcSelect('p1',${n})">${n}</button>`).join('')}
+              </div>
+              <div class="hc-choice-reveal" id="hc-reveal-p1"></div>
+            </div>
+            <div class="hc-panel ${p2Visible?'active-player':''}">
+              <div class="hc-panel-lbl">${hcMode==='bot'?'🤖 Bot':'🧍 '+N.p2}</div>
+              <div class="hc-fingers">
+                ${[1,2,3,4,5,6].map(n=>`<button id="hc-f-p2-${n}" class="hc-finger-btn ${hcMode==='bot'?'locked':''}" onclick="${hcMode==='2p'?`hcSelect('p2',${n})`:'void 0'}">${n}</button>`).join('')}
+              </div>
+              <div class="hc-choice-reveal" id="hc-reveal-p2">${hcMode==='bot'?'Picking…':''}</div>
+            </div>
+          </div>
+
+          <div class="row w-full" style="gap:8px">
+            <button class="g-btn g-btn-secondary" onclick="hcSkipToss()" style="flex:1">↺ RESTART</button>
+          </div>
+        </div>
+      </div>`;
+
+    updateScorePill();
+  }
+
+  function updateStatus(msg, isOut, raw=false) {
+    const el = document.getElementById('hc-status');
+    if (!el) return;
+    if (raw) { el.innerHTML = msg; return; }
+    if (isOut) el.innerHTML = `<span class="hl-out">${msg}</span>`;
+    else el.innerHTML = `<span class="hl">${msg}</span>`;
+  }
+
+  function clearTimers() {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    if (botDelay)       { clearTimeout(botDelay);        botDelay = null; }
+  }
+
+  /* ── Exposed globals ── */
+  window.hcSetMode = function(m) { hcMode = m; initGame(); };
+  window.hcSkipToss = function() { initGame(); };
+
+  /* ── Boot ── */
+  initGame();
 }
 </script>
 </body>
